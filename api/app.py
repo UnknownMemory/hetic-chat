@@ -8,8 +8,15 @@ from models.models import db
 
 app: Flask = Flask(__name__)
 
-load_dotenv('../api/.env.local') if app.debug else load_dotenv()
-app.config['SQLALCHEMY_DATABASE_URI'] = str(os.getenv('POSTGRES_URL'))
+psql_url: str = ''
+if app.debug:
+    load_dotenv('../api/.env.local')
+    psql_url = str(os.getenv('POSTGRES_URL'))
+else:
+    load_dotenv()
+    psql_url: str = str(os.getenv('POSTGRES_URL')).replace('postgres://', 'postgresql://')
+
+app.config['SQLALCHEMY_DATABASE_URI'] = psql_url
 
 cors: CORS = CORS(app, resources={r"/api/*": {"origins": "*"}})
 db.init_app(app)
