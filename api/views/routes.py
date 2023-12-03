@@ -17,7 +17,7 @@ def routes(app, database):
             salt: bytes = bcrypt.gensalt()
             hashed: bytes = bcrypt.hashpw(data['password'].encode('utf-8'), salt)
 
-            new_user: User = User(username=data['username'], password=hashed)
+            new_user: User = User(username=data['username'], password=hashed.decode('utf-8'))
             database.session.add(new_user)
             try:
                 database.session.commit()
@@ -28,6 +28,17 @@ def routes(app, database):
 
         return jsonify({'error': 'Une erreur est survenue'})
 
+    @app.route("/api/login", methods=['POST'])
+    def login():
+        data: dict = request.json
+
+        current_user: User = User.query.filter_by(username=data['username']).first()
+        if current_user:
+            if bcrypt.checkpw(data['password'].encode('utf8'), current_user.password.encode('utf8')):
+                return jsonify({'user': current_user.username})
+
+        return jsonify({'error': 'Une erreur est survenue'})
+
     @app.route("/api/user/<user_id>", methods=['GET', 'POST', 'UPDATE', 'DELETE'])
-    def users(user_id):
+    def user(user_id: int):
         return f"<p>Hello, World! {user_id}</p>"
