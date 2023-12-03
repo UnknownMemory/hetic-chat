@@ -1,14 +1,15 @@
 import os
-
 from flask import Flask
 from flask_cors import CORS
 from dotenv import load_dotenv
 
 from models.models import db
+from views.routes import routes
+
 
 app: Flask = Flask(__name__)
-
 psql_url: str = ''
+
 if app.debug:
     load_dotenv('../api/.env.local')
     psql_url = str(os.getenv('POSTGRES_URL'))
@@ -25,7 +26,4 @@ with app.app_context():
     db.create_all()
     db.session.commit()
 
-
-@app.route("/api/python")
-def hello_world():
-    return "<p>Hello, World!</p>"
+routes(app, db)
