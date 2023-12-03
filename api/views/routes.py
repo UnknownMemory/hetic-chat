@@ -41,4 +41,16 @@ def routes(app, database):
 
     @app.route("/api/user/<user_id>", methods=['GET', 'POST', 'UPDATE', 'DELETE'])
     def user(user_id: int):
-        return f"<p>Hello, World! {user_id}</p>"
+        if request.method == 'GET':
+            current_user: User = User.query.filter_by(id=user_id).first()
+            if current_user:
+                return jsonify({'id': current_user.id, 'user': current_user.username})
+
+    @app.route("/api/users/<int:page>", methods=['GET'])
+    def users(page):
+        if request.method == 'GET':
+            users_list: User = User.query.order_by(User.id).paginate(page=page, per_page=10, error_out=False)
+
+            if users_list.items:
+                return jsonify(users_list.items)
+            return jsonify({'error': 'Une erreur est survenue'})
