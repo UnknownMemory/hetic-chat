@@ -24,7 +24,7 @@ def routes(app, database):
             except exc.IntegrityError:
                 return jsonify({'error': 'Une erreur est survenue'})
 
-            return jsonify({'success': 'Compte créé'})
+            return jsonify({'id': new_user.id, 'user': new_user.username})
 
         return jsonify({'error': 'Une erreur est survenue'})
 
@@ -35,7 +35,7 @@ def routes(app, database):
         current_user: User = User.query.filter_by(username=data['username']).first()
         if current_user:
             if bcrypt.checkpw(data['password'].encode('utf8'), current_user.password.encode('utf8')):
-                return jsonify({'user': current_user.username})
+                return jsonify({'id': current_user.id, 'user': current_user.username})
 
         return jsonify({'error': 'Une erreur est survenue'})
 
