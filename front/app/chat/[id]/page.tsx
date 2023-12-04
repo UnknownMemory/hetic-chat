@@ -1,13 +1,16 @@
 'use client';
 import React, {useEffect, useState} from "react";
-import { useRouter } from "next/navigation";
+import {useParams, useRouter} from "next/navigation";
 import useSWR from "swr";
+import ChatBox from "@/app/chat/_components/chatbox";
 
 // @ts-ignore
 const fetcher = (...args: any[]) => fetch(...args).then((res) => res.json())
 
 export default function Chat() {
-    const { push } = useRouter();
+    const router = useRouter();
+    const params = useParams()
+
     const [pageIndex, setPageIndex] = useState(1);
 
     const { data, error } = useSWR(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${pageIndex}`, fetcher)
@@ -20,13 +23,14 @@ export default function Chat() {
 
 
     return (
-        <div className={"w-full"}>
-            <div className={"w-1/4 h-screen bg-gray-800 pl-6"}>
+        <div className={"flex h-full"}>
+            <div className={"user-list w-1/4 h-screen bg-gray-800 pl-6"}>
                 <h1 className={"text-xl py-6"}>Listes des utilisateurs</h1>
                 <div>
                     {users}
                 </div>
             </div>
+            {params.id != "me" ?  <ChatBox id={params.id as string}/> : ""}
         </div>
     )
 }
