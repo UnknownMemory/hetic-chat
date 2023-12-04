@@ -1,14 +1,13 @@
 import bcrypt
 
-from sqlalchemy import exc
+from sqlalchemy import exc, or_
 from flask import request
 from flask import jsonify
 
-from models.models import User
+from models.models import User, Chat
 
 
 def routes(app, database):
-
     @app.route("/api/register", methods=['POST'])
     def register():
         data: dict = request.json
@@ -48,9 +47,42 @@ def routes(app, database):
 
     @app.route("/api/users/<int:page>", methods=['GET'])
     def users(page):
+        user_id = request.args.get('user_id')
         if request.method == 'GET':
-            users_list: User = User.query.order_by(User.id).paginate(page=page, per_page=10, error_out=False)
+            users_list: User = User.query.filter(User.id != user_id).order_by(User.id).paginate(page=page, per_page=10,
+                                                                                                error_out=False)
 
             if users_list.items:
                 return jsonify(users_list.items)
             return jsonify({'error': 'Une erreur est survenue'})
+
+    @app.route("/api/chat/goc", methods=['GET'])
+    def chat_goc():
+        user_id = request.args.get('user_id')
+        user2_id = request.args.get('user2_id')
+
+        filter_user = or_(Chat.user_id == user_id, Chat.user_id == user2_id)
+        filter_user2 = or_(Chat.user2_id == user_id, Chat.user2_id == user2_id)
+
+        room = Chat.query.filter(filter_user, filter_user2).first()
+
+        if room:
+            return jsonify(room)
+
+        new_room: Chat = Chat(user_id=user_id, user2_id=user2_id)
+        database.session.add(new_room)
+        database.session.commit()
+        if new_room:
+            return jsonify(new_room)
+
+        return jsonify({'error': 'Une erreur est survenue'})
+
+    @app.route("/api/chat/<int:chat_id>", methods=['GET'])
+    def chat(chat_id):
+
+        room = Chat.query.filter(Chat.id == chat_id).first()
+
+        if room:
+            return jsonify(room)
+
+        return jsonify({'error': 'Une erreur est survenue'})
