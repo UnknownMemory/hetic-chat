@@ -110,7 +110,7 @@ def routes(app, database):
     def send_msg():
         data: dict = request.json
 
-        message: Message = Message(message=data['message'], chat_id=data['chat_id'], author=request.headers['user-id'], created_at=datetime.now())
+        message: Message = Message(message=data['message'], chat_id=data['chat_id'], author=data['user_id'], created_at=datetime.now())
         database.session.add(message)
         database.session.commit()
         if message:
