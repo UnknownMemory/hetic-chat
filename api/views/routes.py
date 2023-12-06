@@ -3,11 +3,13 @@ import bcrypt
 from sqlalchemy import exc, or_
 from flask import request
 from flask import jsonify
+from datetime import datetime
 
-from models.models import User, Chat
+from models.models import User, Chat, Message
 
 
 def routes(app, database):
+
     @app.route("/api/register", methods=['POST'])
     def register():
         data: dict = request.json
@@ -26,6 +28,7 @@ def routes(app, database):
             return jsonify({'id': new_user.id, 'user': new_user.username})
 
         return jsonify({'error': 'Une erreur est survenue'})
+        
 
     @app.route("/api/login", methods=['POST'])
     def login():
@@ -37,6 +40,7 @@ def routes(app, database):
                 return jsonify({'id': current_user.id, 'user': current_user.username})
 
         return jsonify({'error': 'Une erreur est survenue'})
+    
 
     @app.route("/api/user/<user_id>", methods=['GET', 'POST', 'UPDATE', 'DELETE'])
     def user(user_id: int):
@@ -44,6 +48,7 @@ def routes(app, database):
             current_user: User = User.query.filter_by(id=user_id).first()
             if current_user:
                 return jsonify({'id': current_user.id, 'user': current_user.username})
+
 
     @app.route("/api/users/<int:page>", methods=['GET'])
     def users(page):
@@ -54,7 +59,8 @@ def routes(app, database):
 
             if users_list.items:
                 return jsonify(users_list.items)
-            return jsonify({'error': 'Une erreur est survenue'})
+            return jsonify([])
+        
 
     @app.route("/api/chat/goc", methods=['GET'])
     def chat_goc():
@@ -77,6 +83,7 @@ def routes(app, database):
 
         return jsonify({'error': 'Une erreur est survenue'})
 
+
     @app.route("/api/chat/<int:chat_id>", methods=['GET'])
     def chat(chat_id):
 
@@ -84,5 +91,29 @@ def routes(app, database):
 
         if room:
             return jsonify(room)
+
+        return jsonify({'error': 'Une erreur est survenue'})
+    
+
+    @app.route("/api/chat/<int:chat_id>/messages", methods=['GET'])
+    def messages(chat_id):
+
+        message: Message = Message.query.filter(Message.chat_id == chat_id).order_by(Message.id).paginate(page=1, per_page=10, error_out=False)
+
+        if message.items:
+            return jsonify(message.items)
+
+        return jsonify({'error': 'Une erreur est survenue'})
+
+
+    @app.route("/api/sendMsg", methods=['POST'])
+    def send_msg():
+        data: dict = request.json
+
+        message: Message = Message(message=data['message'], chat_id=data['chat_id'], author=request.headers['user-id'], created_at=datetime.now())
+        database.session.add(message)
+        database.session.commit()
+        if message:
+            return jsonify(message)
 
         return jsonify({'error': 'Une erreur est survenue'})

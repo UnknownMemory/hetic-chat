@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import datetime
 
 from flask_sqlalchemy import SQLAlchemy
 
@@ -30,6 +31,7 @@ class Message(db.Model):
     __tablename__ = "message"
 
     id: int = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    message: str = db.Column(db.String(500), nullable=False)
     chat_id: int = db.Column(db.Integer, db.ForeignKey('chat.id'), nullable=False)
     author: int = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    created_at: str = db.Column(db.DateTime, nullable=False)
+    created_at: datetime = db.Column(db.DateTime, nullable=False)
