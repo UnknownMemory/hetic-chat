@@ -1,19 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, {useContext, useEffect, useState} from "react";
 import MessageCard from "@/app/chat/_components/message-card";
-
-// @ts-ignore
-const fetcher = (...args: any[]) => fetch(...args).then((res) => res.json())
-
+import {UserContext} from "../../context";
 
 
 export default function ChatBox(props: { id: string }) {
-    const [pageIndex, setPageIndex] = useState(1);
     const [chatID, setChatID]: [chatID: string | number, setChatID: React.Dispatch<React.SetStateAction<any>>] = useState("")
     const [currentChat, setCurrentChat]: [currentChat: Record<string, any>, setCurrentChat: React.Dispatch<React.SetStateAction<any>>] = useState({})
     const [currentUser, setCurrentUser]: [currentUser: Record<string, any>, setCurrentUser: React.Dispatch<React.SetStateAction<any>>] = useState({})
-    const [me, setMe]: [currentUser: Record<string, any>, setCurrentUser: React.Dispatch<React.SetStateAction<any>>] = useState({})
     const [message, setMessage]: [message: string, setMessage: React.Dispatch<React.SetStateAction<any>>] = useState("")
     const [chatMessages, setChatMessages]: [message: Record<string, any>[], setMessage: React.Dispatch<React.SetStateAction<any>>] = useState([])
+
+    const user: Record<string, any> = useContext(UserContext)
 
     const getChat = async () => {
         const res: Response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/chat/${props.id}`,
@@ -75,23 +72,25 @@ export default function ChatBox(props: { id: string }) {
 
     const messagesList = chatMessages.map((message: Record<string, any>, index: number) => {
         return(
-            <MessageCard key={index} message={message.message} username={message.author == me.id ? me.user : currentUser.user} date={message.created_at}/>
+            <MessageCard key={index} message={message.message} username={message.author == user.user.id ? user.user.user : currentUser.user} date={message.created_at}/>
         )
     })
 
     useEffect(() => {
         setChatID(parseInt(props.id))
         getChat().then(r => setCurrentChat(r))
-        getChatMessages().then(r => setChatMessages(r))
+        getChatMessages().then(r => {
+            if(!r.error){
+                setChatMessages(r)
+            }
+
+        })
     }, [props.id])
 
     useEffect(() => {
         if (currentChat && currentChat.id){
-            getUser(localStorage.getItem("user_id") == currentChat.user_id ? currentChat.user2_id : currentChat.user_id).then(r => {
+            getUser(user.userID == currentChat.user_id ? currentChat.user2_id : currentChat.user_id).then(r => {
                 setCurrentUser(r)
-            })
-            getUser(localStorage.getItem("user_id") == currentChat.user_id ? currentChat.user_id : currentChat.user2_id).then(r => {
-                setMe(r)
             })
         }
 
