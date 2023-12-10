@@ -1,8 +1,9 @@
 'use client';
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext} from "react";
 import { useParams, useRouter } from "next/navigation";
 import useSWR from "swr";
 import ChatBox from "@/app/chat/_components/chatbox";
+import {UserContext} from "../../context";
 
 // @ts-ignore
 const fetcher = (...args: any[]) => fetch(...args).then((res) => res.json())
@@ -12,6 +13,7 @@ export default function Chat() {
 
     const { push } = useRouter();
     const params = useParams()
+    const user: Record<string, any> = useContext(UserContext)
 
     const getChat = async (user_id: number) => {
         const res: Response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/chat/goc?user_id=${localStorage.getItem('user_id')}&user2_id=${user_id.toString()}`,
@@ -37,10 +39,15 @@ export default function Chat() {
     })
 
     useEffect(() => {
-        if (!localStorage.getItem("user_id")) {
-            push('/login')
-        }
+        user.getStorageID()
     }, [])
+
+    useEffect(() => {
+        if(user.userID){
+            user.getUser()
+        }
+
+    }, [user.userID]);
 
     return (
         <div className={"flex h-full"}>
