@@ -79,7 +79,12 @@ export default function ChatBox(props: { id: string }) {
     useEffect(() => {
         setChatID(parseInt(props.id))
         getChat().then(r => setCurrentChat(r))
-        getChatMessages().then(r => setChatMessages(r))
+        getChatMessages().then(r => {
+            if(!r.error){
+                setChatMessages(r)
+            }
+
+        })
     }, [props.id])
 
     useEffect(() => {
